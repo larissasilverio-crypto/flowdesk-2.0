@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/api/supabaseClient';
+import { supabase, supabaseAdmin } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -88,17 +88,18 @@ function SetupAdminForm() {
     }
     setLoading(true);
     try {
-      // 1. Create the auth user
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      // 1. Create auth user via service-role client (auto-confirms email, bypasses RLS)
+      const { data: adminData, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: form.email.trim(),
         password: form.password,
+        email_confirm: true,
       });
-      if (signUpError) throw signUpError;
-      const userId = signUpData.user?.id;
+      if (createError) throw createError;
+      const userId = adminData.user?.id;
       if (!userId) throw new Error('Não foi possível criar o usuário. Tente novamente.');
 
-      // 2. Insert admin profile (the INSERT policy allows id = auth.uid())
-      const { error: profileError } = await supabase.from('profiles').insert({
+      // 2. Insert admin profile via service-role client (bypasses RLS)
+      const { error: profileError } = await supabaseAdmin.from('profiles').insert({
         id: userId,
         full_name: form.full_name.trim(),
         email: form.email.trim(),
@@ -107,8 +108,12 @@ function SetupAdminForm() {
       });
       if (profileError) throw profileError;
 
-      // 3. Sign in immediately
-      await supabase.auth.signInWithPassword({ email: form.email.trim(), password: form.password });
+      // 3. Sign in with the regular client
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: form.email.trim(),
+        password: form.password,
+      });
+      if (signInError) throw signInError;
     } catch (err) {
       setError(err.message || 'Erro ao criar conta de administrador.');
     } finally {
