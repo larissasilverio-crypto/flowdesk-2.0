@@ -1,0 +1,54 @@
+{
+  "name": "TemplateMinuta",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome leg\u00edvel do template (exibido em dropdowns)"
+    },
+    "arquivo": {
+      "type": "string",
+      "description": "URL do arquivo .docx armazenado"
+    },
+    "arquivo_nome": {
+      "type": "string",
+      "description": "Nome original do arquivo"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o template est\u00e1 ativo para uso"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "LOAS",
+        "Pens\u00e3o por Morte",
+        "Aposentadoria Rural",
+        "Aposentadoria por Incapacidade",
+        "Aposentadoria H\u00edbrida",
+        "Aux\u00edlio-Acidente",
+        "Benef\u00edcio por Incapacidade",
+        "Outro"
+      ],
+      "description": "Categoria do tipo de a\u00e7\u00e3o"
+    },
+    "tags_sdt": {
+      "type": "string",
+      "description": "Tags de content-control do Word detectadas (JSON ou lista)"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre o template"
+    },
+    "ordem": {
+      "type": "number",
+      "default": 0,
+      "description": "Ordem de exibi\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "nome",
+    "arquivo"
+  ]
+}
