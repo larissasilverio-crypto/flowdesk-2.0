@@ -199,15 +199,39 @@ const authStub = {
   async me() {
     return { id: 'local-user', name: 'Usuário', email: 'user@flowdesk.local' };
   },
-  logout() {
-    // no-op: no auth session to clear
+  logout() {},
+  redirectToLogin() {},
+};
+
+// Stub appLogs: silently no-op (was used for base44 usage analytics)
+const appLogsStub = {
+  logUserInApp: () => Promise.resolve(),
+};
+
+// integrations.Core: real file upload via Supabase Storage, no-op email
+const integrationsCoreStub = {
+  async UploadFile({ file }) {
+    const ext = file.name.split('.').pop();
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('uploads').upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+    if (error) throw new Error(error.message);
+    const { data } = supabase.storage.from('uploads').getPublicUrl(path);
+    return { file_url: data.publicUrl };
   },
-  redirectToLogin() {
-    // no-op: no external auth provider
+  async SendEmail(params) {
+    console.warn('SendEmail called but no email provider configured:', params);
+    return { success: false, message: 'Email provider not configured' };
   },
 };
 
 export const base44 = {
   entities: entitiesProxy,
   auth: authStub,
+  appLogs: appLogsStub,
+  integrations: {
+    Core: integrationsCoreStub,
+  },
 };
