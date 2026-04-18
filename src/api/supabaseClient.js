@@ -191,11 +191,12 @@ const auth = {
   async me() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
+    if (error) throw new Error(error.message);
     return profile ? { ...profile, email: user.email } : null;
   },
 
@@ -280,20 +281,22 @@ export const profileManager = {
       .from('profiles')
       .insert({ id: userId, full_name, email, role, allowed_tabs })
       .select()
-      .single();
+      .maybeSingle();
     if (profileError) throw new Error(profileError.message);
+    if (!profile) throw new Error('O perfil foi criado, mas não retornou dados.');
 
     return profile;
   },
 
   async updateProfile(id, updates) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('profiles')
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
     if (error) throw new Error(error.message);
+    if (!data) throw new Error('Perfil não encontrado para atualização.');
     return data;
   },
 
