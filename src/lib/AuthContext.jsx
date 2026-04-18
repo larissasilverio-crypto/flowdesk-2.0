@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
       .from('profiles')
       .select('*')
       .eq('id', authUser.id)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       setAuthError({ type: 'no_profile', message: 'Perfil não encontrado. Contate o administrador.' });
